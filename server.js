@@ -128,7 +128,7 @@ const WebSocket = require('ws');
 const SerialPort = require('serialport');
 
 const app = express();
-const port = 3000; // Port for your backend server
+const port = 8000; // Port for your backend server
 const wsPort = 4000; // WebSocket server port
 
 // Setup WebSocket server
@@ -158,6 +158,6 @@ wss.on('connection', (ws) => {
 });
 
 app.listen(port, () => {
-  console.log(`Backend server running on http://localhost:${port}`);
-  console.log(`WebSocket server running on ws://localhost:${wsPort}`);
+  console.log(`Backend server running on https://backend-demo-nine-gamma.vercel.app/:${port}`);
+  console.log(`WebSocket server running on ws://backend-demo-nine-gamma.vercel.app/:${wsPort}`);
 });
