@@ -121,18 +121,15 @@
 //   console.log(`Server is running on port ${PORT}`);
 // });
 
-
-// server.js (Node.js backend)
 const express = require('express');
 const WebSocket = require('ws');
 const SerialPort = require('serialport');
 
 const app = express();
-const port = 8000; // Port for your backend server
-const wsPort = 4000; // WebSocket server port
+const port = 8000; // Vercel backend usually uses standard port configurations
 
 // Setup WebSocket server
-const wss = new WebSocket.Server({ port: wsPort });
+const wss = new WebSocket.Server({ noServer: true });
 
 wss.on('connection', (ws) => {
   console.log('Client connected to WebSocket');
@@ -140,15 +137,15 @@ wss.on('connection', (ws) => {
   // Send a message when a client connects
   ws.send('Connected to WebSocket');
   
-  // Send barcode data to the client when received from the scanner
-  const serialPort = new SerialPort('/dev/ttyS0', { baudRate: 9600 }); // Update COM port as necessary
+  // Setup SerialPort for scanner reading
+  const serialPort = new SerialPort('/dev/ttyS0', { baudRate: 9600 }); // Update the port as needed for your setup
 
   // Read barcode data from the scanner
   serialPort.on('data', (data) => {
     const barcode = data.toString('utf-8').trim();
     console.log('Scanned Barcode:', barcode);
-
-    // Send the barcode to the React frontend
+    
+    // Send the barcode to the connected frontend via WebSocket
     ws.send(barcode);
   });
 
@@ -157,7 +154,13 @@ wss.on('connection', (ws) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Backend server running on https://backend-demo-nine-gamma.vercel.app/:${port}`);
-  console.log(`WebSocket server running on ws://backend-demo-nine-gamma.vercel.app/:${wsPort}`);
+// Handle HTTP server to upgrade connections for WebSocket
+app.server = app.listen(port, () => {
+  console.log(`Backend server running on https://backend-demo-git-main-anands-projects-d712ebf9.vercel.app/`);
+});
+
+app.server.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit('connection', ws, request);
+  });
 });
