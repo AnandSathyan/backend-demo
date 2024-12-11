@@ -15,12 +15,14 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "http": "^0.0.1-security",
     "mongodb": "^6.11.0",
     "mongoose": "^8.8.4",
     "msnodesqlv8": "^4.4.0",
     "mssql": "^11.0.1",
     "mysql2": "^3.11.5",
     "serialport": "^12.0.0",
+    "socket.io": "^4.8.1",
     "ws": "^8.18.0"
   },
   "devDependencies": {

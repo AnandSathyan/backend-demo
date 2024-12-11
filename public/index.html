@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scanner Output</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f9;
+    }
+    #scannerOutput {
+      font-size: 2rem;
+      padding: 20px;
+      background-color: #ffffff;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div id="scannerOutput">Waiting for scan...</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // Connect to the server using Socket.io
+    const socket = io();
+
+    // Listen for the scanned code from the server
+    socket.on('scannedCode', (code) => {
+      document.getElementById('scannerOutput').innerText = `Scanned Code: ${code}`;
+    });
+  </script>
+</body>
+</html>
