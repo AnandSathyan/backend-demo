@@ -1,51 +1,45 @@
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-const { SerialPort } = require('serialport');  // Correct import
-const os = require('os');
-// Set up Express app and HTTP server
+const { SerialPort } = require('serialport');  // Use destructuring for newer versions
+const { ReadlineParser } = require('@serialport/parser-readline');
 
-const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
+// Replace with your actual serial port path
+const portPath = 'COM3';  // For Windows, use the appropriate COM port like COM3
 
-// Serial Port configuration
-const portName = os.platform() === 'win32' ? 'COM3' : '/dev/ttyUSB0';  // Windows: COM3, Linux/macOS: /dev/ttyUSB0
-const serialPort = new SerialPort({
-  path: portName,
-  baudRate: 9600,
-  dataBits: 8,
-  parity: 'none',
-  stopBits: 1,
-  flowControl: false
+// Initialize the serial port connection to the barcode scanner
+const port = new SerialPort({
+  path: portPath,      // Specify the serial port path
+  baudRate: 9600,      // Set the baud rate (typically 9600 for barcode scanners)
+  dataBits: 8,         // 8 data bits, standard for most serial communication
+  parity: 'none',      // No parity bit
+  stopBits: 1,         // 1 stop bit
+  flowControl: false   // No flow control
 });
 
-// Serve static files (e.g., HTML, CSS, JS)
-app.use(express.static('public'));
+// Set up the parser to read data line by line, assuming newline or carriage return delimiters
+const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
 
-// When a new connection is made to the web server (client-side)
-io.on('connection', (socket) => {
-  console.log('New client connected');
+// When data is received from the scanner, it will be processed here
+parser.on('data', function (data) {
+  // Clean the data and remove any unwanted characters (e.g., carriage return, newline)
+  const cleanedData = data.trim();
   
-  // Send a welcome message to the client
-  socket.emit('message', 'Connected to scanner stream');
-  
-  // Handle client disconnect
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
+  // Print the received barcode data
+  console.log('Received barcode data:', cleanedData);
+});
+
+// Handle any errors with the serial port
+port.on('error', function (err) {
+  console.error('Error with the serial port:', err.message);
+});
+
+// Optionally, you can listen for opening the port to ensure successful connection
+port.on('open', function () {
+  console.log('Serial port opened successfully. Waiting for data...');
+});
+
+// This will ensure that when the application exits, we clean up the port connection properly
+process.on('SIGINT', () => {
+  port.close(() => {
+    console.log('Port closed, exiting...');
+    process.exit();
   });
-});
-
-// Serial port event - when data is received from the scanner
-serialPort.on('data', (data) => {
-  const scannedCode = data.toString().trim();  // Convert the buffer to a string
-  console.log('Scanned code:', scannedCode);
-  
-  // Emit the scanned code to all connected clients
-  io.emit('scannedCode', scannedCode);
-});
-
-// Start the server on port 3000
-server.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000');
 });
